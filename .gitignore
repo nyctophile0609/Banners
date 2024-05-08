@@ -1,0 +1,5 @@
+banners/api/migrations/__pycache__/
+banners/api/__pycache__/
+banners/banners/__pycache__/
+*.sqlite3
+*.pyc
