@@ -125,12 +125,12 @@ MEDIA_URL = 'banner_images/'
 
 
 ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz"]  # specify allowed hosts explicitly
+CORS_ALLOWED_ORIGINS=["https://jsspm.uz/"]
+# CORS_ORIGIN_WHITELIST = ["http://jsspm.uz", "https://jsspm.uz"]  # specify allowed origins explicitly
+# CORS_ALLOW_CREDENTIALS = True
 
-CORS_ORIGIN_WHITELIST = ["http://jsspm.uz", "https://jsspm.uz"]  # specify allowed origins explicitly
-CORS_ALLOW_CREDENTIALS = True
-
-CSRF_TRUSTED_ORIGINS = ["http://jsspm.uz", "https://jsspm.uz"]  # specify trusted origins for CSRF protection
-SESSION_COOKIE_SAMESITE = 'Lax'
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# CSRF_TRUSTED_ORIGINS = ["http://jsspm.uz", "https://jsspm.uz"]  # specify trusted origins for CSRF protection
+# SESSION_COOKIE_SAMESITE = 'Lax'
+# CSRF_COOKIE_SAMESITE = 'Lax'
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
