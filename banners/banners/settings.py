@@ -7,7 +7,6 @@ SECRET_KEY =os.environ.get("SECRET_KEY")
 #'django-insecure-w0sw7d3qy^slfz$9jr4bjo-*=+l320y5s1ttf37p03^sc_34$)'
 DEBUG = os.environ.get("DEBUG")
 
-ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -114,12 +113,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.UserModel'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'banner_images')
 MEDIA_URL = 'banner_images/'
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_CREDENTIALS = True
 # CORS_ORIGIN_ALLOW_ALL = True
 # CORS_ALLOW_CREDENTIALS = True
-# CSRF_TRUSTED_ORIGINS = ['*']
-# SESSION_COOKIE_SAMESITE = 'None'
-# CSRF_COOKIE_SAMESITE = 'None'
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
+# # CORS_ORIGIN_ALLOW_ALL = True
+# # CORS_ALLOW_CREDENTIALS = True
+# # CSRF_TRUSTED_ORIGINS = ['*']
+# # SESSION_COOKIE_SAMESITE = 'None'
+# # CSRF_COOKIE_SAMESITE = 'None'
+# # SESSION_COOKIE_SECURE = True
+# # CSRF_COOKIE_SECURE = True
+
+
+ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz"]  # specify allowed hosts explicitly
+
+CORS_ORIGIN_WHITELIST = ["http://jsspm.uz", "https://jsspm.uz"]  # specify allowed origins explicitly
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = ["http://jsspm.uz", "https://jsspm.uz"]  # specify trusted origins for CSRF protection
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
