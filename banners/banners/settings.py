@@ -114,7 +114,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'banner_images')
 MEDIA_URL = 'banner_images/'
 
 ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz", "localhost"]
-CORS_ALLOWED_ORIGINS = ["https://jsspm.uz",]
+CORS_ALLOWED_ORIGINS = ["jsspm.uz",]
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
