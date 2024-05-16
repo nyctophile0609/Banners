@@ -5,8 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY =os.environ.get("SECRET_KEY")
 #'django-insecure-w0sw7d3qy^slfz$9jr4bjo-*=+l320y5s1ttf37p03^sc_34$)'
-DEBUG = os.environ.get("DEBUG")
-
+DEBUG = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',
