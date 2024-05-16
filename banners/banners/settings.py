@@ -113,24 +113,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'api.UserModel'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'banner_images')
 MEDIA_URL = 'banner_images/'
-# CORS_ORIGIN_ALLOW_ALL = True
-# CORS_ALLOW_CREDENTIALS = True
-# # CORS_ORIGIN_ALLOW_ALL = True
-# # CORS_ALLOW_CREDENTIALS = True
-# # CSRF_TRUSTED_ORIGINS = ['*']
-# # SESSION_COOKIE_SAMESITE = 'None'
-# # CSRF_COOKIE_SAMESITE = 'None'
-# # SESSION_COOKIE_SECURE = True
-# # CSRF_COOKIE_SECURE = True
 
-
-ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz"]  # specify allowed hosts explicitly
-CORS_ALLOWED_ORIGINS=["https://jsspm.uz",]
-# CORS_ORIGIN_WHITELIST = ["http://jsspm.uz", "https://jsspm.uz"]  # specify allowed origins explicitly
-# CORS_ALLOW_CREDENTIALS = True
-
-# CSRF_TRUSTED_ORIGINS = ["http://jsspm.uz", "https://jsspm.uz"]  # specify trusted origins for CSRF protection
-# SESSION_COOKIE_SAMESITE = 'Lax'
-# CSRF_COOKIE_SAMESITE = 'Lax'
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
+ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz", "localhost"]
+CORS_ALLOWED_ORIGINS = ["https://jsspm.uz",]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
