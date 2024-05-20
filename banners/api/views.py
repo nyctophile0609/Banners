@@ -79,8 +79,8 @@ class OrderModelViewSet(ModelViewSet):
         target_year = year if year != None else datetime.datetime.now().year
         result1 = [0] * 12
         result2 = [0] * 12
-        orders = OrderModel.objects.filter(start_date__year__lte=target_year, end_date__year__gte=target_year).exclude(olast_action="deleted")
-        for i in orders:
+        bruhs = OrderModel.objects.filter(start_date__year__lte=target_year, end_date__year__gte=target_year).exclude(olast_action="deleted")
+        for i in bruhs:
             target_year_start = datetime.date(target_year, 1, 1)
             target_year_end = datetime.date(target_year, 12, 31)  # Adjusted end date
             start_date = max(i.start_date, target_year_start)
@@ -108,19 +108,16 @@ class OrderModelViewSet(ModelViewSet):
                 if d <= 12: 
                     result2[d - 1] += i.rent_price  
                 if d==y2-1:
-                    result2[d]+=asd 
-
-
-
-
-
+                    result2[d]+=asd
         qw2=dict()
         for e in range(1,13):
             qw2[e]=result1[e-1]-result2[e-1]
+        print(result1,result2)
   
         qwer=dict()
         qwer["year"]=target_year
-        qwer["payment"]=qw2
+        qwer["you_need_this"]=qw2
+        qwer["paid_payment"]=result2
         qwer["yearly_payment"]=sum(result2)
         return Response(qwer)
     
@@ -217,6 +214,90 @@ class OutlayModelViewSet(ModelViewSet):
         q3=BannerModel.objects.all().exclude(blast_action="deleted")
         w3=q3.count()
         return Response({"admins":w2,"banners":w3,"orders":w1})
+
+
+class BruhModelViewSet(ModelViewSet):
+    queryset=BruhModel.objects.all().exclude(slast_action="deleted")
+    serializer_class=BruhModelSerializer
+    permission_classes=[permissions.IsAuthenticated]
+    authentication_classes = [authentication.SessionAuthentication,
+                              authentication.TokenAuthentication]
+
+    def perform_destroy(self, instance):
+        instance.slast_action = "deleted"
+        instance.save()
+        ad1(uid=self.request.user.id,oid=instance.id,mnum=6,at='deleted')
+
+
+    @action(detail=False, methods=["get"])
+    def monthly_income(self, request, year=None):
+        target_year = year if year is not None else datetime.datetime.now().year
+        result1 = [0] * 12
+        result2 = [0] * 12
+        rer=[[],[],[],[],[],[],[],[],[],[],[],[],]
+        bruhs = BruhModel.objects.filter(start_date__year__lte=target_year, end_date__year__gte=target_year).exclude(slast_action="deleted")
+        for bruh in bruhs:
+            target_year_start = datetime.date(target_year, 1, 1)
+            target_year_end = datetime.date(target_year, 12, 31)
+            start_date = max(bruh.start_date, target_year_start)
+            end_date = min(bruh.end_date, target_year_end)
+            rented_months_target_year = (end_date.year - start_date.year) * 12 + end_date.month - start_date.month + 1
+            paid_months = bruh.paid_payment // bruh.rent_price
+            asd = bruh.paid_payment % bruh.rent_price
+            months_before_target_year = (start_date.year - bruh.start_date.year) * 12 + start_date.month - bruh.start_date.month
+            paid_months_target_year = int(min(max(0, paid_months - months_before_target_year), rented_months_target_year))
+
+            if bruh.end_date.year > target_year:
+                x1 = start_date.month
+                x2 = end_date.month + 1
+                y1 = start_date.month
+                y2 = start_date.month + paid_months_target_year
+            if bruh.end_date.year == target_year:
+                x1 = start_date.month
+                x2 = end_date.month
+                y1 = start_date.month
+                y2 = start_date.month + paid_months_target_year
+
+            for j in range(x1, x2):
+                
+                result1[j - 1] += bruh.rent_price
+                
+
+            for vv in range(x1,x2):
+                if y2==vv:
+                    cw={"label":bruh.name,
+                        "data":bruh.rent_price-asd} 
+                elif y2>vv:
+                    cw= {"label":bruh.name,
+                         "data":0} 
+                else:
+                    cw={"label":bruh.name,
+                        "data":bruh.rent_price}
+                rer[vv-1].append(cw)
+
+            for d in range(y1, y2):
+                if d <= 12:
+                    result2[d - 1] += bruh.rent_price
+                if d == y2 - 1:
+                    result2[d] += asd
+
+        qw2 = dict()
+        for e in range(1, 13):
+            qw2[e] = result1[e - 1] - result2[e - 1]
+        qwer = dict()
+        qwer["year"] = target_year
+        qwer["you_need_this"] = qw2
+        qwer["paid_payment"] = result2
+        qwer["yearly_payment"] = sum(result2)
+        qwer["hh"]=rer
+        return Response(qwer)
+
+
+
+
+
+
+
 
 class ActionLogModelViewSet(ModelViewSet):
     queryset = ActionLogModel.objects.all()
@@ -345,6 +426,31 @@ class ActionLogModelViewSet(ModelViewSet):
                 outlay.elast_action="created"
                 outlay.save()
 
+        elif instance.object_model=="bruh_model":
+            if instance.action_type == "created":
+                bruh = get_object_or_404( BruhModel,id=instance.object_id)
+                bruh.delete()
+            elif instance.action_type == "deleted":
+                bruh = get_object_or_404(BruhModel,id=instance.object_id)
+                bruh.slast_action = "created"
+                bruh.save()
+            elif instance.action_type == "updated":
+                bruh = get_object_or_404(BruhModel,id=instance.object_id)
+                shadow=get_object_or_404(ShadowBruhModel,id=instance.shadow_object_id)
+                bruh.name = shadow.name
+                bruh.number = shadow.number
+                bruh.rent_price = shadow.rent_price
+                bruh.start_date = shadow.start_date
+                bruh.end_date = shadow.end_date
+                bruh.bruh_note = shadow.bruh_note
+                bruh.paid_payment = shadow.paid_payment
+                bruh.slast_action = shadow.slast_action
+                bruh.save()
+                bruh.full_payment=bruh.monthly_payment()*bruh.rent_price
+                bruh.save()
+
+                shadow.delete()
+
         return super().perform_destroy(instance)
     def get_permissions(self):
         permission_classes=[permissions.IsAuthenticated,IsAdminPermission]
@@ -356,7 +462,7 @@ class ActionLogModelViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
 def ad1(oid,uid,mnum,at):
-    x=['user_model','banner_model','order_model','payment_model','outlay_model'][int(mnum)-1]
+    x=['user_model','banner_model','order_model','payment_model','outlay_model',"bruh_model"][int(mnum)-1]
     new_action = ActionLogModel.objects.create(
         user_id=uid,
         object_model=x,

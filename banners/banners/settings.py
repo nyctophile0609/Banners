@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY =os.environ.get("SECRET_KEY")
 #'django-insecure-w0sw7d3qy^slfz$9jr4bjo-*=+l320y5s1ttf37p03^sc_34$)'
-DEBUG = False
+DEBUG = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -112,20 +112,22 @@ AUTH_USER_MODEL = 'api.UserModel'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'banner_images')
 MEDIA_URL = 'banner_images/'
 
-ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz", "localhost"]
-CORS_ORIGIN_ALLOW_ALL = False
-CORS_ALLOWED_ORIGINS = ["https://jsspm.uz",]
-CORS_ORIGIN_WHITELIST = [
-    "https://jsspm.uz",
-]
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
+# ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz", "localhost"]
+ALLOWED_HOSTS=["*"]
+CORS_ORIGIN_ALLOW_ALL = True
+
+# CORS_ALLOWED_ORIGINS = ["https://jsspm.uz",]
+# CORS_ORIGIN_WHITELIST = [
+#     "https://jsspm.uz",
+# ]
+# CORS_ALLOW_HEADERS = [
+#     'accept',
+#     'accept-encoding',
+#     'authorization',
+#     'content-type',
+#     'dnt',
+#     'origin',
+#     'user-agent',
+#     'x-csrftoken',
+#     'x-requested-with',
+# ]

@@ -14,7 +14,7 @@ BANNER_TYPE_CHOICES = [("on_a_wall","On wall"),('on_a_pole', 'On pole'),('else_w
 ORDER_STATUS_CHOICES=[("finished_rent","Finished"),("ongoing_rent","Ongoing"),("planning_rent","Planning")]
 MODEL_CHOICES = [('admin_user_model', 'Admin User Model'),('banner_model', 'Banner Model'),
                  ('order_model','Order Model'),("payment_model","Payment Model"),
-                 ('outlay_model','Outlay Model')]
+                 ('outlay_model','Outlay Model'),("bruh_model","Bruh Model")]
 
 
 class UserModel(AbstractUser):
@@ -73,7 +73,7 @@ class OrderModel(models.Model):
     paid_payment = models.DecimalField(max_digits=32, decimal_places=2, default=0)
     olast_action = models.CharField(choices=LAST_ACTION_CHOICES, max_length=20)
     created_date = models.DateTimeField(auto_now_add=True)
-    
+   
     def clean(self):
         if self.start_date:
             try:
@@ -91,12 +91,11 @@ class OrderModel(models.Model):
             if self.end_date <= self.start_date:
                 raise ValidationError({'end_date': 'End date must be greater than start date.'})
         
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs): 
         if self.start_date and self.end_date:
             try:
                 self.end_date = self.end_date.replace(day=self.start_date.day)
             except ValueError:
-                # If an error occurs during the replacement process, set the day of the end_date to 28
                 self.end_date = datetime.date(self.end_date.year, self.end_date.month, 28)
                 self.start_date = datetime.date(self.start_date.year, self.start_date.month, 28)
 
@@ -116,13 +115,61 @@ class PaymentModel(models.Model):
     created_date=models.DateTimeField(auto_now_add=True)
     class Meta:
             ordering = ['-created_date']
+
+class BruhModel(models.Model):
+    bruh_admin = models.ForeignKey(UserModel, on_delete=models.SET_NULL, null=True)
+    name=models.CharField(max_length=100)
+    number=models.CharField(max_length=30,null=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    rent_price = models.DecimalField(max_digits=32, decimal_places=2)
+    bruh_note = models.CharField(max_length=600, null=True, blank=True)
+    full_payment = models.DecimalField(max_digits=32, decimal_places=2, null=True)
+    paid_payment = models.DecimalField(max_digits=32, decimal_places=2, default=0)
+    slast_action = models.CharField(choices=LAST_ACTION_CHOICES, max_length=20)
+    created_date = models.DateTimeField(auto_now_add=True)
+  
+    def clean(self):
+        if self.start_date:
+            try:
+                self.start_date = datetime.datetime.strptime(self.start_date.strftime('%m/%d/%Y'), "%m/%d/%Y")
+            except ValueError:
+                raise ValidationError({'start_date': 'Invalid date format. Please use mm/dd/yyyy.'})
+        if self.end_date:
+            try:
+                self.end_date = datetime.datetime.strptime(self.end_date.strftime('%m/%d/%Y'), "%m/%d/%Y")
+            except ValueError:
+                raise ValidationError({'end_date': 'Invalid date format. Please use mm/dd/yyyy.'})
+
+        if self.start_date and self.end_date:
+            if self.end_date <= self.start_date:
+                raise ValidationError({'end_date': 'End date must be greater than start date.'})
+    def save(self, *args, **kwargs):
+        if self.start_date and self.end_date:
+            try:
+                self.end_date = self.end_date.replace(day=self.start_date.day)
+            except Exception:
+                self.end_date = datetime.date(self.end_date.year, self.end_date.month, 28)
+                self.start_date = datetime.date(self.start_date.year, self.start_date.month, 28)
+        super().save(*args, **kwargs)
+
+    def monthly_payment(self):
+        years=self.end_date.year-self.start_date.year
+        months=self.end_date.month-self.start_date.month
+        return years*12+months
+    class Meta:
+            ordering = ['-created_date']
+
+
 class OutlayModel(models.Model):
     admin=models.ForeignKey(UserModel,on_delete=models.SET_NULL,null=True)
+    bruh=models.ForeignKey(BruhModel,on_delete=models.SET_NULL,null=True)
     outlay_amount=models.DecimalField(max_digits=32,decimal_places=2)
     elast_action= models.CharField(choices=LAST_ACTION_CHOICES,max_length=20,)
     created_date=models.DateTimeField(auto_now_add=True)
     class Meta:
             ordering = ['-created_date']
+
 class ActionLogModel(models.Model):
 
 
@@ -182,7 +229,19 @@ class ShadowPaymentModel(models.Model):
 
 class ShadowOutlayModel(models.Model):
     outlay_object_id=models.PositiveIntegerField()
+    bruh=models.ForeignKey(BruhModel,on_delete=models.SET_NULL,null=True) 
     admin=models.ForeignKey(UserModel,on_delete=models.SET_NULL,null=True)
     outlay_amount=models.DecimalField(max_digits=32,decimal_places=2)
     elast_action= models.CharField(choices=LAST_ACTION_CHOICES,max_length=20,)
 
+class ShadowBruhModel(models.Model):
+    bruh_object_id=models.PositiveIntegerField()
+    name=models.CharField(max_length=100)
+    number=models.CharField(max_length=30,null=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    rent_price = models.DecimalField(max_digits=32, decimal_places=2)
+    bruh_note = models.CharField(max_length=600, null=True, blank=True)
+    full_payment = models.DecimalField(max_digits=32, decimal_places=2, null=True)
+    paid_payment = models.DecimalField(max_digits=32, decimal_places=2, default=0)
+    slast_action = models.CharField(choices=LAST_ACTION_CHOICES, max_length=20)

@@ -77,12 +77,11 @@ class BannerModelSerializer(ModelSerializer):
 
 class OrderModelSerializer(ModelSerializer):
     monthly_payment = serializers.CharField( read_only=True)
-    orders = serializers.CharField( read_only=True)
 
     class Meta:
         model=OrderModel
         fields="__all__"
-        read_only_fields = ["id", "created_date","olast_action","order_admin","monthly_payment","full_payment","paid_payment","orders"]
+        read_only_fields = ["id", "created_date","olast_action","order_admin","monthly_payment","full_payment","paid_payment",]
 
     def create(self, validated_data):
         order=OrderModel.objects.create(**validated_data)
@@ -180,39 +179,112 @@ class PaymentModelSerializer(ModelSerializer):
             ad1(uid=self.context['request'].user.id, oid=instance.id, mnum=4, at='updated',shid=shadow.id)
             return instance
 
+    
+class BruhModelSerializer(ModelSerializer):
+    monthly_payment = serializers.CharField( read_only=True)
+
+    class Meta:
+        model=BruhModel
+        fields="__all__"
+        read_only_fields = ["id", "created_date","slast_action","bruh_admin","monthly_payment","full_payment","paid_payment",]
+
+    def create(self, validated_data):
+        bruh=BruhModel.objects.create(**validated_data)
+        bruh.slast_action="created"
+        bruh.bruh_admin=self.context["request"].user
+        years=bruh.end_date.year-bruh.start_date.year
+        months=bruh.end_date.month-bruh.start_date.month
+        bruh.full_payment=int(years*12+months)*bruh.rent_price
+        bruh.save()
+        ad1(uid=self.context['request'].user.id,oid=bruh.id,mnum=6,at='created',shid=None)
+        return  bruh
+
+    def update(self, instance, validated_data):
+        shadow=ShadowBruhModel.objects.create(
+            bruh_object_id=instance.id,
+            name=instance.name,
+            number=instance.number,
+            rent_price=instance.rent_price,
+            start_date=instance.start_date,
+            end_date=instance.end_date,
+            bruh_note=instance.bruh_note,
+            paid_payment=instance.paid_payment,
+            slast_action=instance.slast_action,)
+        
+        instance.name=validated_data.get("name",instance.name)
+        instance.number=validated_data.get("number",instance.number)
+        instance.rent_price = validated_data.get('rent_price', instance.rent_price)
+        instance.start_date = validated_data.get('start_date', instance.start_date)
+        instance.end_date = validated_data.get('end_date', instance.end_date)
+        years=instance.end_date.year-instance.start_date.year
+        months=instance.end_date.month-instance.start_date.month
+        instance.bruh_note=validated_data.get("bruh_note",instance.bruh_note)
+        instance.full_payment=int(years*12+months)*instance.rent_price
+        instance.slast_action = "updated"
+        instance.save()
+        ad1(uid=self.context['request'].user.id,oid=instance.id,mnum=6,at='updated',shid=shadow.id)
+        return instance
+
 class OutlayModelSerializer(ModelSerializer):
     admin=UserModelSerializer(read_only=True)
+    bruh=BruhModelSerializer()
     class Meta:
         model=OutlayModel
         fields="__all__"
         read_only_fields=["id","admin","elast_action"]
 
     def create(self, validated_data):
-        outlay=OutlayModel.objects.create(**validated_data)
-        outlay.elast_action="created"
-        outlay.admin=self.context["request"].user
-        outlay.save()
-        ad1(uid=self.context['request'].user.id, oid=outlay.id, mnum=5, at='created',shid=None)
-        return outlay
+        amount=validated_data.get("outlay_amount")
+        bruh=validated_data.get("bruh")
+        bruh_object=get_object_or_404(BruhModel,id=bruh.id)
+        if amount>bruh_object.full_payment-bruh_object.paid_payment:
+            raise ValidationError({'success': False, 'error_message': 'Outlay amount cannot exceed the remaining balance of the bruh.'})
+        else:
+            bruh_object.paid_payment+=amount
+            bruh_object.save()
+            outlay=OutlayModel.objects.create(**validated_data)
+            outlay.elast_action="created"
+            outlay.admin=self.context["request"].user
+
+            outlay.save()
+            ad1(uid=self.context['request'].user.id, oid=outlay.id, mnum=5, at='created',shid=None)
+            return outlay
 
     def update(self, instance, validated_data):
-        shadow=ShadowOutlayModel.objects.create(
-            outlay_object_id=instance.id,
-            admin=instance.admin,
-            outlay_amount=instance.outlay_amount,
-            elast_action=instance.elast_action,
-        )
-        instance.elast_action = "updated"
-        instance.outlay_amount=validated_data.get('outlay_amount', instance.outlay_amount)
-        instance.save()
-        ad1(uid=self.context['request'].user.id, oid=instance.id, mnum=5, at='updated',shid=shadow.id)
+        new_outlay_amount = validated_data.get("outlay_amount")
+        new_bruh =validated_data.get("bruh")
+        old_bruh = get_object_or_404(BruhModel, id=instance.bruh.id)
 
-        return instance
+        if old_bruh!=new_bruh and new_outlay_amount > new_bruh.full_payment - new_bruh.paid_payment:
+            raise ValidationError({'success': False, 'error_message': 'Outlay amount cannot exceed the remaining balance of the bruh.'})
+        if old_bruh==new_bruh and new_outlay_amount > new_bruh.full_payment - new_bruh.paid_payment:
+            raise ValidationError({'success': False, 'error_message': 'Outlay amount cannot exceed the remaining balance of the bruh.'})
+        if instance.bruh.paid_payment < instance.outlay_amount:
+            raise ValidationError({'success': False, 'error_message': 'Outlay amount cannot be less than the paid balance of the bruh.'})
+        else:
+            shadow = ShadowOutlayModel.objects.create(
+                outlay_object_id=instance.id,
+                admin=instance.admin,
+                bruh=instance.bruh,
+                outlay_amount=instance.outlay_amount,
+                elast_action=instance.elast_action,
+            )
 
-from rest_framework import serializers
-from .models import ActionLogModel
-from .models import *
+            old_bruh.paid_payment = old_bruh.paid_payment - instance.outlay_amount
+            old_bruh.save()
+            print(old_bruh.paid_payment)
 
+            instance.elast_action = "updated"
+            instance.outlay_amount = new_outlay_amount
+            instance.bruh = new_bruh
+            instance.save()
+
+            new_bruh_object = get_object_or_404(BruhModel, id=instance.bruh.id)
+            new_bruh_object.paid_payment = new_bruh_object.paid_payment + instance.outlay_amount
+            new_bruh_object.save()
+
+            ad1(uid=self.context['request'].user.id, oid=instance.id, mnum=4, at='updated', shid=shadow.id)
+            return instance
 class ActionLogModelSerializer(serializers.ModelSerializer):
     object_instance = serializers.SerializerMethodField()
 
@@ -221,7 +293,7 @@ class ActionLogModelSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_object_instance(self, obj):
-        object_model = obj.object_model
+        object_model = obj.object_model 
         object_id = obj.object_id
         user_id = obj.user_id
 
@@ -250,7 +322,7 @@ class ActionLogModelSerializer(serializers.ModelSerializer):
             return None
 
 def ad1(oid,uid,mnum,at,shid):
-    x=['user_model','banner_model','order_model','payment_model','outlay_model'][int(mnum)-1]
+    x=['user_model','banner_model','order_model','payment_model','outlay_model',"bruh_model"][int(mnum)-1]
     new_action = ActionLogModel.objects.create(
         user_id=uid,
         object_model=x,
