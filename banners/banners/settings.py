@@ -114,20 +114,20 @@ MEDIA_URL = 'banner_images/'
 
 ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz", "localhost","127.0.0.1","*"]
 # ALLOWED_HOSTS=["*"]
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = False
 
-# CORS_ALLOWED_ORIGINS = ["https://jsspm.uz",]
-# CORS_ORIGIN_WHITELIST = [
-#     "https://jsspm.uz",
-# ]
-# CORS_ALLOW_HEADERS = [
-#     'accept',
-#     'accept-encoding',
-#     'authorization',
-#     'content-type',
-#     'dnt',
-#     'origin',
-#     'user-agent',
-#     'x-csrftoken',
-#     'x-requested-with',
-# ]
+CORS_ALLOWED_ORIGINS = ["https://jsspm.uz",]
+CORS_ORIGIN_WHITELIST = [
+    "https://jsspm.uz",
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
