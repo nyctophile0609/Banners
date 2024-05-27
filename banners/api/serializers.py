@@ -225,14 +225,12 @@ class BruhModelSerializer(ModelSerializer):
         ad1(uid=self.context['request'].user.id,oid=instance.id,mnum=6,at='updated',shid=shadow.id)
         return instance
 
-class OutlayModelSerializer(ModelSerializer):
+class OutlayModelSerializer1(ModelSerializer):
     admin=UserModelSerializer(read_only=True)
-    bruh=BruhModelSerializer()
     class Meta:
         model=OutlayModel
         fields="__all__"
         read_only_fields=["id","admin","elast_action"]
-
     def create(self, validated_data):
         amount=validated_data.get("outlay_amount")
         bruh=validated_data.get("bruh")
@@ -285,6 +283,15 @@ class OutlayModelSerializer(ModelSerializer):
 
             ad1(uid=self.context['request'].user.id, oid=instance.id, mnum=4, at='updated', shid=shadow.id)
             return instance
+class OutlayModelSerializer(ModelSerializer):
+    admin=UserModelSerializer(read_only=True)
+    bruh=BruhModelSerializer()
+    class Meta:
+        model=OutlayModel
+        fields="__all__"
+        read_only_fields=["id","admin","elast_action"]
+
+
 class ActionLogModelSerializer(serializers.ModelSerializer):
     object_instance = serializers.SerializerMethodField()
 
