@@ -10,7 +10,7 @@ services:
     volumes:
       - ./banners:/app
     ports:
-      - 8099:8000
+      - 8089:8000
     environment:
       - DEBUG=1
       - SECRET_KEY=django-insecure-w0sw7d3qy^slfz$9jr4bjo-*=+l320y5s1ttf37p03^sc_34$)
