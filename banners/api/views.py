@@ -93,6 +93,20 @@ class OrderModelViewSet(ModelViewSet):
         target_year = year if year != None else datetime.datetime.now().year
         result1 = [0] * 12
         result2 = [0] * 12
+        rer1 = [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+        ]
         bruhs = OrderModel.objects.filter(
             start_date__year__lte=target_year, end_date__year__gte=target_year
         ).exclude(olast_action="deleted")
@@ -132,6 +146,17 @@ class OrderModelViewSet(ModelViewSet):
                 y2 = start_date.month + paid_months_target_year
             for j in range(x1, x2):
                 result1[j - 1] += i.rent_price
+            
+            for vv in range(x1,x2):
+                if y2==vv:
+                    cw={"label":i.company,"data":i.rent_price-asd}
+                elif y2>vv:
+                    cw={"label":i.company,"data":0}
+                else:
+                    cw = {"label": i.company, "data": i.rent_price}
+                rer1[vv - 1].append(cw)
+
+
 
             for d in range(y1, y2):
                 if d <= 12:
@@ -148,6 +173,8 @@ class OrderModelViewSet(ModelViewSet):
         qwer["you_need_this"] = qw2
         qwer["paid_payment"] = result2
         qwer["yearly_payment"] = sum(result2)
+        qwer["hh"] = rer1
+
         return Response(qwer)
 
     @action(detail=False, methods=["get"])
@@ -248,7 +275,11 @@ class OutlayModelViewSet(ModelViewSet):
 
     def perform_destroy(self, instance):
         instance.elast_action = "deleted"
+        bruh=instance.bruh
+        bruh.paid_payment-=instance.outlay_amount
+        bruh.save()
         instance.save()
+        ad1(oid=instance.id,uid=self.request.user.id,mnum=5,at="deleted")
 
     def get_serializer_class(self):
         if self.action in ["create", "update", "partial_update"]:
@@ -372,8 +403,10 @@ class BruhModelViewSet(ModelViewSet):
             for d in range(y1, y2):
                 if d <= 12:
                     result2[d - 1] += bruh.rent_price
-                if d == y2 - 1:
+                if d == y2 - 1 and  d!=12:
+                    print(result2,d)
                     result2[d] += asd
+                    
 
         qw2 = dict()
         for e in range(1, 13):
@@ -539,20 +572,30 @@ class ActionLogModelViewSet(ModelViewSet):
         elif instance.object_model == "outlay_model":
             if instance.action_type == "created":
                 outlay = get_object_or_404(OutlayModel, id=instance.object_id)
+                bruh=outlay.bruh
+                bruh.paid_payment-=outlay.outlay_amount
+                bruh.save()
                 outlay.delete()
             elif instance.action_type == "updated":
                 outlay = get_object_or_404(OutlayModel, id=instance.object_id)
                 shadow = get_object_or_404(
                     ShadowOutlayModel, id=instance.shadow_object_id
                 )
+                bruh=outlay.bruh
+                bruh.paid_payment-=outlay.outlay_amount
+                bruh.paid_payment+=shadow.outlay_amount
                 outlay.outlay_amount = shadow.outlay_amount
                 outlay.elast_action = shadow.elast_action
+                bruh.save()
                 outlay.save()
                 shadow.delete()
             elif instance.action_type == "deleted":
                 outlay = get_object_or_404(OutlayModel, id=instance.object_id)
+                bruh=outlay.bruh
+                bruh.paid_payment+=outlay.outlay_amount
                 outlay.elast_action = "created"
                 outlay.save()
+                bruh.save()
 
         elif instance.object_model == "bruh_model":
             if instance.action_type == "created":
