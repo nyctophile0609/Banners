@@ -17,7 +17,8 @@ router.register(r'action-log',ActionLogModelViewSet,basename='action-log')
 
 urlpatterns = [
     path('orders/monthly_income/<int:year>/', OrderModelViewSet.as_view({'get': 'monthly_income'}), name='order_monthly_income'),
-    path('orders/yearly_income/<int:year>/', OrderModelViewSet.as_view({'get': 'yearly_income'}), name='order_yearly_income'),
     path('bruhs/monthly_income/<int:year>/', BruhModelViewSet.as_view({'get': 'monthly_income'}), name='bruh_monthly_income'),
+    path('orders/detailed_orders/<int:id>/', OrderModelViewSet.as_view({'get': 'detailed_orders'}), name='detailed_orders'),
+    
     path('', include(router.urls)),
 ]

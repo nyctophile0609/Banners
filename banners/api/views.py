@@ -12,6 +12,7 @@ from .serializers import *
 from .models import *
 from .permissions import *
 from django.http import JsonResponse
+from django_filters.rest_framework import DjangoFilterBackend
 
 
 class UserModelViewSet(ModelViewSet):
@@ -73,11 +74,13 @@ class BannerModelViewSet(ModelViewSet):
         instance.save()
         ad1(uid=self.request.user.id, oid=instance.id, mnum=2, at="deleted")
 
-
+from .filters import *
 class OrderModelViewSet(ModelViewSet):
     queryset = OrderModel.objects.all().exclude(olast_action="deleted")
     serializer_class = OrderModelSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends=[DjangoFilterBackend]
+    filterset_class = OrderModelFilter
     authentication_classes = [
         authentication.SessionAuthentication,
         authentication.TokenAuthentication,
@@ -93,74 +96,42 @@ class OrderModelViewSet(ModelViewSet):
         target_year = year if year != None else datetime.datetime.now().year
         result1 = [0] * 12
         result2 = [0] * 12
-        rer1 = [
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-            [],
-        ]
-        bruhs = OrderModel.objects.filter(
-            start_date__year__lte=target_year, end_date__year__gte=target_year
-        ).exclude(olast_action="deleted")
-        for i in bruhs:
-            target_year_start = datetime.date(target_year, 1, 1)
-            target_year_end = datetime.date(target_year, 12, 31)  # Adjusted end date
-            start_date = max(i.start_date, target_year_start)
-            end_date = min(i.end_date, target_year_end)
-            rented_months_target_year = (
-                (end_date.year - start_date.year) * 12
-                + end_date.month
-                - start_date.month
-                + 1
-            )  # Adjusted calculation
-            paid_months = i.paid_payment // i.rent_price
-            asd = i.paid_payment % i.rent_price
-            months_before_target_year = (
-                (start_date.year - i.start_date.year) * 12
-                + start_date.month
-                - i.start_date.month
-            )
-            paid_months_target_year = int(
-                min(
-                    max(0, paid_months - months_before_target_year),
-                    rented_months_target_year,
-                )
-            )
-            if i.end_date.year > target_year:
-                x1 = start_date.month
-                x2 = end_date.month + 1
-                y1 = start_date.month
-                y2 = start_date.month + paid_months_target_year
-            if i.end_date.year == target_year:
-                x1 = start_date.month
-                x2 = end_date.month
-                y1 = start_date.month
-                y2 = start_date.month + paid_months_target_year
+        rer1 = [[] for _ in range(12)]
+        
+        bruhs = OrderModel.objects.filter(start_date__year__lte=target_year, end_date__year__gte=target_year
+        ).exclude(olast_action="deleted",)
+        
+        
+        for bruh in bruhs:
+            start_date = max(bruh.start_date, datetime.date(target_year, 1, 1))
+            end_date = min(bruh.end_date, datetime.date(target_year, 12, 31))
+            rented_months_target_year = end_date.month - start_date.month + 1
+    
+            paid_months = bruh.paid_payment // bruh.rent_price
+            asd = bruh.paid_payment % bruh.rent_price
+            months_before_target_year = (start_date.year - bruh.start_date.year) * 12 + start_date.month - bruh.start_date.month
+            paid_months_target_year = int(min(max(0, paid_months - months_before_target_year),rented_months_target_year,))
+            x2=bruh.end_date.year == target_year and end_date.month or bruh.end_date.year > target_year and end_date.month + 1
+            x1 = start_date.month
+            y1 = start_date.month
+            y2 = start_date.month + paid_months_target_year
+            if bruh.order_status=="finished_rent":
+                x1,x2=y1,y2
+
             for j in range(x1, x2):
-                result1[j - 1] += i.rent_price
+                result1[j - 1] += bruh.rent_price
             
             for vv in range(x1,x2):
                 if y2==vv:
-                    cw={"label":i.company,"data":i.rent_price-asd}
+                    cw={"label":bruh.company,"data":bruh.rent_price-asd}
                 elif y2>vv:
-                    cw={"label":i.company,"data":0}
+                    cw={"label":bruh.company,"data":0}
                 else:
-                    cw = {"label": i.company, "data": i.rent_price}
+                    cw = {"label": bruh.company, "data": bruh.rent_price}
                 rer1[vv - 1].append(cw)
-
-
-
             for d in range(y1, y2):
                 if d <= 12:
-                    result2[d - 1] += i.rent_price
+                    result2[d - 1] += bruh.rent_price
                 if d == y2 - 1:
                     result2[d] += asd
         qw2 = dict()
@@ -178,68 +149,53 @@ class OrderModelViewSet(ModelViewSet):
         return Response(qwer)
 
     @action(detail=False, methods=["get"])
-    def yearly_income(self, request, year=None):
-        target_year = year if year != None else datetime.datetime.now().year
-        result = 0
-        result1 = 0
-        result2 = 0
-        orders = OrderModel.objects.filter(
-            start_date__year__lte=target_year, end_date__year__gte=target_year
-        ).exclude(olast_action="deleted")
-        orders1 = OrderModel.objects.filter(
-            start_date__year__lte=target_year,
-            end_date__year__gte=target_year,
-            olast_action="deleted",
-        )
-        for i in orders:
-            if i.start_date.year == target_year:
-                rented_months_target_year = min(
-                    13 - i.start_date.month, i.monthly_payment()
-                )
-                paid_months = i.paid_payment // i.rent_price
-                paid_months_target_year = (
-                    min(paid_months, rented_months_target_year)
-                    if paid_months >= 0
-                    else 0
-                )
-            else:
-                paid_months = i.paid_payment // i.rent_price
-                months_before_target_year = (
-                    (target_year - i.start_date.year) * 12 + 1 - i.start_date.month
-                )
-                j = i.monthly_payment() - months_before_target_year
-                rented_months_target_year = min(j, 12) if j >= 0 else 0
-                h = paid_months - months_before_target_year
-                paid_months_target_year = (
-                    min(h, rented_months_target_year) if h >= 0 else 0
-                )
-            result += paid_months_target_year * i.rent_price
-        for i in orders1:
-            if i.start_date.year == target_year:
-                rented_months_target_year = min(
-                    13 - i.start_date.month, i.monthly_payment()
-                )
-                paid_months = i.paid_payment // i.rent_price
-                paid_months_target_year = (
-                    min(paid_months, rented_months_target_year)
-                    if paid_months >= 0
-                    else 0
-                )
-            else:
-                paid_months = i.paid_payment // i.rent_price
-                months_before_target_year = (
-                    (target_year - i.start_date.year) * 12 + 1 - i.start_date.month
-                )
-                j = i.monthly_payment() - months_before_target_year
-                rented_months_target_year = min(j, 12) if j >= 0 else 0
-                h = paid_months - months_before_target_year
-                paid_months_target_year = (
-                    min(h, rented_months_target_year) if h >= 0 else 0
-                )
-            result2 += paid_months_target_year * i.rent_price
-        w = {"year": target_year, "yearly_payment": result}
-        return Response(w)
+    def detailed_orders(self,request,id=None):
+        order_object=get_object_or_404(OrderModel,id=id)
+        xs=order_object.end_date.year-order_object.start_date.year+1
+        paid_months=int(order_object.paid_payment//order_object.rent_price)
+        qwe=[order_object.rent_price]*paid_months
+        flag=0
+        if  paid_months*order_object.rent_price<order_object.paid_payment:
+            qwe.append(order_object.paid_payment%order_object.rent_price)
+            flag=1
+        q1=order_object.start_date.month
+        w1=[-1]*(q1-1)
+        q2=12-order_object.end_date.month
+        q3=xs*12-paid_months-len(w1)-13+order_object.end_date.month
+        w2=[-1]*(13-order_object.end_date.month)
+        w3=[0]*q3
+        # print(len(qwe),len(w1),len(w2))
+        if flag:
+            w3=w3[:-1]
+        
+        total=w1+qwe+w3+w2
+        # print(w1,"\n",qwe,"\n",w2,"\n",w3)
+        result1=dict()
+        try:
+            x,y=0,12
+            for i in range(xs):
+                result1[f"{order_object.start_date.year+i}"]=total[x:y]
+                x+=12
+                y+=12
+        
+        except Exception:
+            pass
+        result={1:result1,2:len(total)}
+        
+        return Response(result)
 
+    @action(detail=False,methods=["get"])
+    def set_of_companies(self,request):
+        companies=OrderModel.objects.values("company").all().exclude(olast_action="deleted")
+        result=[]
+        qw=[]
+        print()
+        for i in companies:
+            qw.append(i["company"])
+        print(qw)
+
+        return Response(list(set(qw)))
+        
     def get_serializer_class(self):
         if self.action in ["monthly_income", "yearly_income"]:
             return None
