@@ -385,201 +385,204 @@ class ActionLogModelViewSet(ModelViewSet):
     ]
 
     def perform_destroy(self, instance):
-        if instance.object_model == "user_model":
-            if instance.action_type == "created":
-                user = get_object_or_404(UserModel, id=instance.object_id)
-                user.delete()
-            elif instance.action_type == "deleted":
-                user = get_object_or_404(UserModel, id=instance.object_id)
-                user.ulast_action = "created"
-            elif instance.action_type == "updated":
-                user = get_object_or_404(UserModel, id=instance.object_id)
-                shadow = get_object_or_404(
-                    ShadowUserModel, id=instance.shadow_object_id
-                )
-                user.username = shadow.username
-                user.full_name = shadow.full_name
-                user.admin_status = shadow.admin_status
-                user.ulast_action = shadow.ulast_action
-                user.save()
-                shadow.delete()
-
-        elif instance.object_model == "banner_model":
-            if instance.action_type == "created":
-                banner = get_object_or_404(BannerModel, id=instance.object_id)
-                banner.delete()
-
-            elif instance.action_type == "deleted":
-                banner = get_object_or_404(BannerModel, id=instance.object_id)
-                banner.blast_action = "created"
-                banner.save()
-            elif instance.action_type == "updated":
-                banner = get_object_or_404(BannerModel, id=instance.object_id)
-                shadow = get_object_or_404(
-                    ShadowBannerModel, id=instance.shadow_object_id
-                )
-                banner.banner_id = shadow.banner_id
-                banner.name = shadow.name
-                banner.banner_type = shadow.banner_type
-                banner.latitude = shadow.latitude
-                banner.longitude = shadow.longitude
-                banner.banner_image = shadow.banner_image
-                banner.blast_action = shadow.blast_action
-                banner.save()
-                shadow.delete()
-        elif instance.object_model == "order_model":
-            if instance.action_type == "created":
-                order = get_object_or_404(OrderModel, id=instance.object_id)
-                order.delete()
-            elif instance.action_type == "deleted":
-                order = get_object_or_404(OrderModel, id=instance.object_id)
-                order.olast_action = "created"
-                order.save()
-            elif instance.action_type == "updated":
-                order = get_object_or_404(OrderModel, id=instance.object_id)
-                shadow = get_object_or_404(
-                    ShadowOrderModel, id=instance.shadow_object_id
-                )
-                order.company = shadow.company
-                order.phone_number = shadow.phone_number
-                order.banner = shadow.banner
-                order.banner_side = shadow.banner_side
-                order.rent_price = shadow.rent_price
-                order.start_date = shadow.start_date
-                order.end_date = shadow.end_date
-                order.order_status = shadow.order_status
-                order.order_note = shadow.order_note
-                order.paid_payment = shadow.paid_payment
-                order.olast_action = shadow.olast_action
-                order.save()
-                shadow.delete()
-        elif instance.object_model == "payment_model":
-            if instance.action_type == "created":
-                payment = get_object_or_404(PaymentModel, id=instance.object_id)
-                client = payment.client
-                if client.full_payment - client.paid_payment < payment.payment_amount:
-                    return JsonResponse(
-                        {
-                            "success": False,
-                            "error_message": "Payment amount cannot exceed the remaining balance of the order.",
-                        },
-                        status=400,
+        try:
+                
+            if instance.object_model == "user_model":
+                if instance.action_type == "created":
+                    user = get_object_or_404(UserModel, id=instance.object_id)
+                    user.delete()
+                elif instance.action_type == "deleted":
+                    user = get_object_or_404(UserModel, id=instance.object_id)
+                    user.ulast_action = "created"
+                elif instance.action_type == "updated":
+                    user = get_object_or_404(UserModel, id=instance.object_id)
+                    shadow = get_object_or_404(
+                        ShadowUserModel, id=instance.shadow_object_id
                     )
-                else:
-                    client.paid_payment = client.paid_payment - payment.payment_amount
-                    client.save()
-                    payment.delete()
-            elif instance.action_type == "deleted":
-                payment = get_object_or_404(PaymentModel, id=instance.object_id)
-                payment.plast_action = "created"
-                client = payment.client
-                if client.full_payment - client.paid_payment < payment.payment_amount:
-                    return JsonResponse(
-                        {
-                            "success": False,
-                            "error_message": "Payment amount cannot exceed the remaining balance of the order.",
-                        },
-                        status=400,
-                    )
-                else:
-                    client.paid_payment = client.paid_payment + payment.payment_amount
-                    client.save()
-                    payment.save()
-            elif instance.action_type == "updated":
-                payment = get_object_or_404(PaymentModel, id=instance.object_id)
-                shadow = get_object_or_404(
-                    ShadowPaymentModel, id=instance.shadow_object_id
-                )
-                pclient = payment.client
-                sclient = shadow.client
-                if sclient.full_payment - sclient.paid_payment < shadow.payment_amount:
-                    return JsonResponse(
-                        {
-                            "success": False,
-                            "error_message": "Payment amount cannot exceed the remaining balance of the order.",
-                        },
-                        status=400,
-                    )
-                elif pclient.paid_payment < payment.payment_amount:
-                    return JsonResponse(
-                        {
-                            "success": False,
-                            "error_message": "Payment amount cannot be less than the paid balance of the order.",
-                        },
-                        status=400,
-                    )
-                else:
-                    x = pclient.paid_payment - payment.payment_amount
-                    pclient.paid_payment = x
-                    y = (
-                        sclient.paid_payment
-                        + shadow.payment_amount
-                        - payment.payment_amount
-                    )
-                    sclient.paid_payment = y
-                    payment.client = shadow.client
-                    payment.payment_amount = shadow.payment_amount
-                    payment.plast_action = shadow.plast_action
-
-                    pclient.save()
-                    sclient.save()
-                    payment.save()
+                    user.username = shadow.username
+                    user.full_name = shadow.full_name
+                    user.admin_status = shadow.admin_status
+                    user.ulast_action = shadow.ulast_action
+                    user.save()
                     shadow.delete()
-        elif instance.object_model == "outlay_model":
-            if instance.action_type == "created":
-                outlay = get_object_or_404(OutlayModel, id=instance.object_id)
-                bruh=outlay.bruh
-                bruh.paid_payment-=outlay.outlay_amount
-                bruh.save()
-                outlay.delete()
-            elif instance.action_type == "updated":
-                outlay = get_object_or_404(OutlayModel, id=instance.object_id)
-                shadow = get_object_or_404(
-                    ShadowOutlayModel, id=instance.shadow_object_id
-                )
-                bruh=outlay.bruh
-                bruh.paid_payment-=outlay.outlay_amount
-                bruh.paid_payment+=shadow.outlay_amount
-                outlay.outlay_amount = shadow.outlay_amount
-                outlay.elast_action = shadow.elast_action
-                bruh.save()
-                outlay.save()
-                shadow.delete()
-            elif instance.action_type == "deleted":
-                outlay = get_object_or_404(OutlayModel, id=instance.object_id)
-                bruh=outlay.bruh
-                bruh.paid_payment+=outlay.outlay_amount
-                outlay.elast_action = "created"
-                outlay.save()
-                bruh.save()
 
-        elif instance.object_model == "bruh_model":
-            if instance.action_type == "created":
-                bruh = get_object_or_404(BruhModel, id=instance.object_id)
-                bruh.delete()
-            elif instance.action_type == "deleted":
-                bruh = get_object_or_404(BruhModel, id=instance.object_id)
-                bruh.slast_action = "created"
-                bruh.save()
-            elif instance.action_type == "updated":
-                bruh = get_object_or_404(BruhModel, id=instance.object_id)
-                shadow = get_object_or_404(
-                    ShadowBruhModel, id=instance.shadow_object_id
-                )
-                bruh.name = shadow.name
-                bruh.number = shadow.number
-                bruh.rent_price = shadow.rent_price
-                bruh.start_date = shadow.start_date
-                bruh.end_date = shadow.end_date
-                bruh.bruh_note = shadow.bruh_note
-                bruh.paid_payment = shadow.paid_payment
-                bruh.slast_action = shadow.slast_action
-                bruh.save()
-                bruh.full_payment = bruh.monthly_payment() * bruh.rent_price
-                bruh.save()
+            elif instance.object_model == "banner_model":
+                if instance.action_type == "created":
+                    banner = get_object_or_404(BannerModel, id=instance.object_id)
+                    banner.delete()
 
-                shadow.delete()
+                elif instance.action_type == "deleted":
+                    banner = get_object_or_404(BannerModel, id=instance.object_id)
+                    banner.blast_action = "created"
+                    banner.save()
+                elif instance.action_type == "updated":
+                    banner = get_object_or_404(BannerModel, id=instance.object_id)
+                    shadow = get_object_or_404(
+                        ShadowBannerModel, id=instance.shadow_object_id
+                    )
+                    banner.banner_id = shadow.banner_id
+                    banner.name = shadow.name
+                    banner.banner_type = shadow.banner_type
+                    banner.latitude = shadow.latitude
+                    banner.longitude = shadow.longitude
+                    banner.banner_image = shadow.banner_image
+                    banner.blast_action = shadow.blast_action
+                    banner.save()
+                    shadow.delete()
+            elif instance.object_model == "order_model":
+                if instance.action_type == "created":
+                    order = get_object_or_404(OrderModel, id=instance.object_id)
+                    order.delete()
+                elif instance.action_type == "deleted":
+                    order = get_object_or_404(OrderModel, id=instance.object_id)
+                    order.olast_action = "created"
+                    order.save()
+                elif instance.action_type == "updated":
+                    order = get_object_or_404(OrderModel, id=instance.object_id)
+                    shadow = get_object_or_404(
+                        ShadowOrderModel, id=instance.shadow_object_id
+                    )
+                    order.company = shadow.company
+                    order.phone_number = shadow.phone_number
+                    order.banner = shadow.banner
+                    order.banner_side = shadow.banner_side
+                    order.rent_price = shadow.rent_price
+                    order.start_date = shadow.start_date
+                    order.end_date = shadow.end_date
+                    order.order_status = shadow.order_status
+                    order.order_note = shadow.order_note
+                    order.paid_payment = shadow.paid_payment
+                    order.olast_action = shadow.olast_action
+                    order.save()
+                    shadow.delete()
+            elif instance.object_model == "payment_model":
+                if instance.action_type == "created":
+                    payment = get_object_or_404(PaymentModel, id=instance.object_id)
+                    client = payment.client
+                    if client.full_payment - client.paid_payment < payment.payment_amount:
+                        return JsonResponse(
+                            {
+                                "success": False,
+                                "error_message": "Payment amount cannot exceed the remaining balance of the order.",
+                            },
+                            status=400,
+                        )
+                    else:
+                        client.paid_payment = client.paid_payment - payment.payment_amount
+                        client.save()
+                        payment.delete()
+                elif instance.action_type == "deleted":
+                    payment = get_object_or_404(PaymentModel, id=instance.object_id)
+                    payment.plast_action = "created"
+                    client = payment.client
+                    if client.full_payment - client.paid_payment < payment.payment_amount:
+                        return JsonResponse(
+                            {
+                                "success": False,
+                                "error_message": "Payment amount cannot exceed the remaining balance of the order.",
+                            },
+                            status=400,
+                        )
+                    else:
+                        client.paid_payment = client.paid_payment + payment.payment_amount
+                        client.save()
+                        payment.save()
+                elif instance.action_type == "updated":
+                    payment = get_object_or_404(PaymentModel, id=instance.object_id)
+                    shadow = get_object_or_404(
+                        ShadowPaymentModel, id=instance.shadow_object_id
+                    )
+                    pclient = payment.client
+                    sclient = shadow.client
+                    if sclient.full_payment - sclient.paid_payment < shadow.payment_amount:
+                        return JsonResponse(
+                            {
+                                "success": False,
+                                "error_message": "Payment amount cannot exceed the remaining balance of the order.",
+                            },
+                            status=400,
+                        )
+                    elif pclient.paid_payment < payment.payment_amount:
+                        return JsonResponse(
+                            {
+                                "success": False,
+                                "error_message": "Payment amount cannot be less than the paid balance of the order.",
+                            },
+                            status=400,
+                        )
+                    else:
+                        x = pclient.paid_payment - payment.payment_amount
+                        pclient.paid_payment = x
+                        y = (
+                            sclient.paid_payment
+                            + shadow.payment_amount
+                            - payment.payment_amount
+                        )
+                        sclient.paid_payment = y
+                        payment.client = shadow.client
+                        payment.payment_amount = shadow.payment_amount
+                        payment.plast_action = shadow.plast_action
 
+                        pclient.save()
+                        sclient.save()
+                        payment.save()
+                        shadow.delete()
+            elif instance.object_model == "outlay_model":
+                if instance.action_type == "created":
+                    outlay = get_object_or_404(OutlayModel, id=instance.object_id)
+                    bruh=outlay.bruh
+                    bruh.paid_payment-=outlay.outlay_amount
+                    bruh.save()
+                    outlay.delete()
+                elif instance.action_type == "updated":
+                    outlay = get_object_or_404(OutlayModel, id=instance.object_id)
+                    shadow = get_object_or_404(
+                        ShadowOutlayModel, id=instance.shadow_object_id
+                    )
+                    bruh=outlay.bruh
+                    bruh.paid_payment-=outlay.outlay_amount
+                    bruh.paid_payment+=shadow.outlay_amount
+                    outlay.outlay_amount = shadow.outlay_amount
+                    outlay.elast_action = shadow.elast_action
+                    bruh.save()
+                    outlay.save()
+                    shadow.delete()
+                elif instance.action_type == "deleted":
+                    outlay = get_object_or_404(OutlayModel, id=instance.object_id)
+                    bruh=outlay.bruh
+                    bruh.paid_payment+=outlay.outlay_amount
+                    outlay.elast_action = "created"
+                    outlay.save()
+                    bruh.save()
+
+            elif instance.object_model == "bruh_model":
+                if instance.action_type == "created":
+                    bruh = get_object_or_404(BruhModel, id=instance.object_id)
+                    bruh.delete()
+                elif instance.action_type == "deleted":
+                    bruh = get_object_or_404(BruhModel, id=instance.object_id)
+                    bruh.slast_action = "created"
+                    bruh.save()
+                elif instance.action_type == "updated":
+                    bruh = get_object_or_404(BruhModel, id=instance.object_id)
+                    shadow = get_object_or_404(
+                        ShadowBruhModel, id=instance.shadow_object_id
+                    )
+                    bruh.name = shadow.name
+                    bruh.number = shadow.number
+                    bruh.rent_price = shadow.rent_price
+                    bruh.start_date = shadow.start_date
+                    bruh.end_date = shadow.end_date
+                    bruh.bruh_note = shadow.bruh_note
+                    bruh.paid_payment = shadow.paid_payment
+                    bruh.slast_action = shadow.slast_action
+                    bruh.save()
+                    bruh.full_payment = bruh.monthly_payment() * bruh.rent_price
+                    bruh.save()
+
+                    shadow.delete()
+        except Exception:
+            pass
         return super().perform_destroy(instance)
 
     def get_permissions(self):

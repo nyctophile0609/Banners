@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 import datetime
 import os
 import shutil
-from banners.settings import MEDIA_ROOT
+from banners.settings import MEDIA_ROOT 
 from django.http import JsonResponse
 
 LAST_ACTION_CHOICES = [('created', 'Created'),('updated', 'Updated'),('deleted', 'Deleted'),]
