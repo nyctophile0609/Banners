@@ -1,11 +1,16 @@
 from pathlib import Path
 import os
+SECURE_HSTS_SECONDS = 31536000  
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY =os.environ.get("SECRET_KEY")
-#'django-insecure-w0sw7d3qy^slfz$9jr4bjo-*=+l320y5s1ttf37p03^sc_34$)'
-DEBUG = True
+SECRET_KEY ='WTyzfxOoYbvR_nJ_b03Es3X_OQKWk6Qbare1vLeyJ4Dhutqt7feTB-OGCSVa2v7PuR'
+DEBUG = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -112,10 +117,9 @@ AUTH_USER_MODEL = 'api.UserModel'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'banner_images')
 MEDIA_URL = 'banner_images/'
 
-ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz", "localhost","127.0.0.1","*"]
+ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz",]
 # ALLOWED_HOSTS=["*"]
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = ["https://jsspm.uz",]
 CORS_ORIGIN_WHITELIST = [
