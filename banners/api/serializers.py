@@ -77,7 +77,7 @@ class BannerModelSerializer(ModelSerializer):
 
 class OrderModelSerializer(ModelSerializer):
     monthly_payment = serializers.CharField( read_only=True)
-
+    banner=BannerModelSerializer()
     class Meta:
         model=OrderModel
         fields="__all__"

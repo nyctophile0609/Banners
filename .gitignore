@@ -3,3 +3,4 @@ banners/api/__pycache__/
 banners/banners/__pycache__/
 *.sqlite3
 *.pyc
+secret_key.py
