@@ -47,8 +47,9 @@ class UserModelViewSet(ModelViewSet):
         instance.save()
         ad1(uid=self.request.user.id, oid=instance.id, mnum=1, at="deleted")
 
+    
     def get_permissions(self):
-        if self.action == "logout":
+        if self.action in ["logout", "retrieve","list"]:
             permission_classes = [permissions.IsAuthenticated]
         elif self.action == "update":
             permission_classes = [permissions.IsAuthenticated, CanUpdateProfile]
@@ -57,6 +58,7 @@ class UserModelViewSet(ModelViewSet):
         else:
             permission_classes = [permissions.AllowAny]
         return [permission() for permission in permission_classes]
+
 
 
 class BannerModelViewSet(ModelViewSet):

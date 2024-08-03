@@ -1,6 +1,7 @@
 banners/api/migrations/__pycache__/
 banners/api/__pycache__/
 banners/banners/__pycache__/
+/banner_images/banner_*/
 *.sqlite3
 *.pyc
 secret_key.py
