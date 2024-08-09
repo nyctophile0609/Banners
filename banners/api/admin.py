@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import *
 admin.site.register(UserModel)
 admin.site.register(BannerModel)
+admin.site.register(CompanyModel)
 admin.site.register(OrderModel)
 admin.site.register(PaymentModel)
 admin.site.register(OutlayModel)

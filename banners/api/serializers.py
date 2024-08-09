@@ -74,10 +74,47 @@ class BannerModelSerializer(ModelSerializer):
 
         
         return instance
+class CompanyModelSerializer(ModelSerializer):
+    class Meta:
+        model=CompanyModel
+        fields="__all__"
+        read_only_fields = ['id', 'created_date', 'clast_action',"created_by"] 
+
+        
+
+    def create(self, validated_data):
+        company=CompanyModel.objects.create(**validated_data)
+        company.clast_action="created"
+        company.created_by=self.context["request"].user
+        company.save()
+        ad1(uid=self.context['request'].user.id,oid=company.id,mnum=7,at='created',shid=None)
+        return company
+
+    def update(self, instance, validated_data):
+        shadow=ShadowCompanyModel.objects.create(
+            company_object_id=instance.id,
+            name=instance.name,
+            phone_number=instance.phone_number,
+            description=instance.description,
+            clast_action=instance.clast_action)
+        
+        instance.name=validated_data.get("name",instance.name)
+        instance.phone_number=validated_data.get("phone_number",instance.phone_number)
+        instance.description=validated_data.get("description",instance.description)
+        instance.clast_action="updated"
+        ad1(uid=self.context['request'].user.id,oid=instance.id,mnum=7,at='updated',shid=shadow.id)
+
+        return instance
+class OrderModelSerializer1(ModelSerializer):
+    monthly_payment = serializers.CharField( read_only=True)
+    banner=BannerModelSerializer()
+    class Meta:
+        model=OrderModel
+        fields="__all__"
+        read_only_fields = ["id", "created_date","olast_action","order_admin","monthly_payment","full_payment","paid_payment",]
 
 class OrderModelSerializer(ModelSerializer):
     monthly_payment = serializers.CharField( read_only=True)
-    banner=BannerModelSerializer()
     class Meta:
         model=OrderModel
         fields="__all__"
@@ -329,7 +366,13 @@ class ActionLogModelSerializer(serializers.ModelSerializer):
             return None
 
 def ad1(oid,uid,mnum,at,shid):
-    x=['user_model','banner_model','order_model','payment_model','outlay_model',"bruh_model"][int(mnum)-1]
+    x=['user_model',
+       'banner_model',
+       'order_model',
+       'payment_model',
+       'outlay_model',
+       "bruh_model",
+       "company_model"][int(mnum)-1]
     new_action = ActionLogModel.objects.create(
         user_id=uid,
         object_model=x,

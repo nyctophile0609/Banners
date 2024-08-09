@@ -124,28 +124,27 @@ MEDIA_URL = 'banner_images/'
 # SECURE_HSTS_SECONDS = 31536000  
 # SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 # SECURE_HSTS_PRELOAD = True
-# SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = False
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
 
 
-ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz",]
+# ALLOWED_HOSTS = ["api.jsspm.uz", "jsspm.uz",]
 ALLOWED_HOSTS=["*"]
 # CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOW_ALL_ORIGINS = True
-
-CORS_ALLOWED_ORIGINS = ["https://jsspm.uz",]
-CORS_ORIGIN_WHITELIST = [
-    "https://jsspm.uz",
-]
-CORS_ALLOW_HEADERS = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
-]
+# CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = ["https://jsspm.uz",]
+# CORS_ORIGIN_WHITELIST = [
+#     "https://jsspm.uz",
+# ]
+# CORS_ALLOW_HEADERS = [
+#     'accept',
+#     'accept-encoding',
+#     'authorization',
+#     'content-type',
+#     'dnt',
+#     'origin',
+#     'user-agent',
+#     'x-csrftoken',
+#     'x-requested-with',
+# ]

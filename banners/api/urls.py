@@ -8,6 +8,7 @@ router = DefaultRouter()
 
 router.register(r'users',UserModelViewSet,basename='users')
 router.register(r'banners',BannerModelViewSet,basename='banners')
+router.register(r'companies',CompanyModelViewSet,basename='companies')
 router.register(r'orders',OrderModelViewSet,basename='orders')
 router.register(r'payments',PaymentModelViewSet,basename='payments')
 router.register(r"outlays",OutlayModelViewSet,basename="outlays")

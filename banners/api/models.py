@@ -56,12 +56,19 @@ class BannerModel(models.Model):
             self.save()
     class Meta:
             ordering = ['-created_date']
-        
+
+class CompanyModel(models.Model):
+    created_by=models.ForeignKey(UserModel,null=True,on_delete=models.SET_NULL)
+    name=models.CharField(max_length=150,unique=True)
+    phone_number=models.CharField(max_length=20,null=True)
+    description=models.TextField(blank=True,null=True)
+    clast_action=models.CharField(choices=LAST_ACTION_CHOICES, max_length=20)
+    created_date = models.DateTimeField(auto_now_add=True)
+   
 
 class OrderModel(models.Model):
     order_admin = models.ForeignKey(UserModel, on_delete=models.SET_NULL, null=True)
-    company = models.CharField(max_length=100)
-    phone_number = models.CharField(max_length=100)    
+    company = models.ForeignKey(CompanyModel,null=True,on_delete=models.SET_NULL)
     banner = models.ForeignKey(BannerModel, on_delete=models.SET_NULL, null=True)
     banner_side = models.CharField(choices=BANNER_SIDE_CHOICES, max_length=20)
     rent_price = models.DecimalField(max_digits=32, decimal_places=2)
@@ -204,6 +211,13 @@ class ShadowBannerModel(models.Model):
     banner_image=models.ImageField(upload_to="just_a_sec")
     blast_action=models.CharField(choices=LAST_ACTION_CHOICES,max_length=20,)
 
+class ShadowCompanyModel(models.Model):
+    company_object_id=models.PositiveIntegerField()
+    name=models.CharField(max_length=150,unique=True)
+    phone_number=models.CharField(max_length=20,null=True)
+    description=models.TextField(blank=True,null=True)
+    clast_action=models.CharField(choices=LAST_ACTION_CHOICES, max_length=20)
+
 class ShadowOrderModel(models.Model):
     order_object_id=models.PositiveIntegerField()
     order_admin = models.ForeignKey(UserModel, on_delete=models.SET_NULL, null=True)
@@ -245,3 +259,4 @@ class ShadowBruhModel(models.Model):
     full_payment = models.DecimalField(max_digits=32, decimal_places=2, null=True)
     paid_payment = models.DecimalField(max_digits=32, decimal_places=2, default=0)
     slast_action = models.CharField(choices=LAST_ACTION_CHOICES, max_length=20)
+
